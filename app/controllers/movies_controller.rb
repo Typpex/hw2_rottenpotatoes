@@ -10,6 +10,8 @@ class MoviesController < ApplicationController
     @order = :asc
     @hilite_release_date=""
     @hilite_title=""
+    @all_ratings = Movie.rating_list
+    
     if params[:order]==:asc.to_s
       @order = :desc
     else
@@ -26,7 +28,16 @@ class MoviesController < ApplicationController
         @hilite_release_date = "hilite"
       end
     end
-    @movies = Movie.order(sort_by + " " + @order.to_s)
+    
+    if params[:ratings] == nil
+      @ratings = ''
+    else
+      @ratings = params[:ratings].keys
+    end
+    
+    if @ratings != ''
+      @movies = Movie.find_by_rating(@ratings).order(sort_by + " " + @order.to_s)
+    end
     
   end
 
