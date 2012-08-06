@@ -8,20 +8,24 @@ class MoviesController < ApplicationController
 
   def index
     @order = :asc
-    @hilite_release_date=""
-    @hilite_title=""
-    @all_ratings = Movie.rating_list
+    @all_ratings = Hash.new(0);
+    Movie.rating_list.each do |m|
+      @all_ratings[m] = false
+    end
     
+    #Basculent de l'ordre de tri
     if params[:order]==:asc.to_s
       @order = :desc
     else
       @order = :asc
     end
     
+    #Par defaut on tri par titre
     if params[:sort_by] == nil
       sort_by = "title"
     else
       sort_by = params[:sort_by]
+      #SI on a cliaue sur titre ou date de sortie alors on surligne en jaune le header du tableau
       if sort_by=="title"
         @hilite_title="hilite"
       else sort_by=="release_date"
@@ -29,16 +33,17 @@ class MoviesController < ApplicationController
       end
     end
     
-    if params[:ratings] == nil
-      @ratings = ''
-    else
-      @ratings = params[:ratings].keys
+    if !params[:ratings].nil?
+      session[:ratings] = params[:ratings]
+    end 
+    if !session[:ratings].nil?
+      @ratings = session[:ratings].keys
+      @ratings.each do |r|
+        @all_ratings[r] = true
+      end       
     end
     
-    if @ratings != ''
-      @movies = Movie.find_by_rating(@ratings).order(sort_by + " " + @order.to_s)
-    end
-    
+      @movies = Movie.find_all_by_rating(@ratings, :order=>sort_by + " " + @order.to_s)
   end
 
   def new
